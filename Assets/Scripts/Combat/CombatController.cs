@@ -72,31 +72,36 @@ public class CombatController : MonoBehaviour
     }
 
     private void DetectHit(float damage)
+{
+    Collider2D[] hits = Physics2D.OverlapCircleAll(attackPoint.position, attackRange, opponentLayer);
+
+    foreach (Collider2D hit in hits)
     {
-        Collider2D[] hits = Physics2D.OverlapCircleAll(attackPoint.position, attackRange, opponentLayer);
+        // Ignore self
+        if (hit.gameObject == gameObject) continue;
 
-        foreach (Collider2D hit in hits)
+        HealthController opponent = hit.GetComponent<HealthController>();
+        CombatController opponentCombat = hit.GetComponent<CombatController>();
+
+        if (opponent == null) continue;
+
+        if (opponentCombat != null && opponentCombat.IsParrying())
         {
-            HealthController opponent = hit.GetComponent<HealthController>();
-            CombatController opponentCombat = hit.GetComponent<CombatController>();
-
-            if (opponent == null) continue;
-
-            if (opponentCombat != null && opponentCombat.IsParrying())
-            {
-                OnParried();
-                return;
-            }
-
-            bool isBlocking = opponentCombat != null && opponentCombat.IsBlocking();
-            float finalDamage = isBlocking ? damage * 0.2f : damage;
-
-            opponent.TakeDamage(finalDamage);
-            GainSpecialMeter(specialMeterGainOnHit);
-
-            Debug.Log($"{gameObject.name} hit {hit.name} for {finalDamage} damage");
+            OnParried();
+            return;
         }
+
+        bool isBlocking = opponentCombat != null && opponentCombat.IsBlocking();
+        float finalDamage = isBlocking ? damage * 0.2f : damage;
+
+        opponent.TakeDamage(finalDamage);
+        GainSpecialMeter(specialMeterGainOnHit);
+        ScreenShake.Instance?.Shake(0.1f, 0.15f);
+        HitStop.Instance?.Stop(0.08f);
+
+        Debug.Log($"{gameObject.name} hit {hit.name} for {finalDamage} damage");
     }
+}
 
     public void StartBlock()
     {

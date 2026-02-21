@@ -76,11 +76,21 @@ public class HealthController : MonoBehaviour
     }
 
     private void Die()
+{
+    stateMachine.ChangeState(CharacterState.Dead);
+    OnDeath?.Invoke();
+
+    // Tell GameManager which player died
+    if (GameManager.Instance != null)
     {
-        stateMachine.ChangeState(CharacterState.Dead);
-        OnDeath?.Invoke();
-        Debug.Log($"{gameObject.name} has died!");
+        if (gameObject.name == "Player1")
+            GameManager.Instance.OnPlayerDied(1);
+        else if (gameObject.name == "Player2")
+            GameManager.Instance.OnPlayerDied(2);
     }
+
+    Debug.Log($"{gameObject.name} has died!");
+}
 
     public void ApplyKnockback(Vector2 direction)
     {

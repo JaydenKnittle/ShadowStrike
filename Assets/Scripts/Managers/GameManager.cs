@@ -22,6 +22,13 @@ public class GameManager : MonoBehaviour
     public HealthController player1Health;
     public HealthController player2Health;
 
+    [Header("Spawn Points")]
+public Transform player1StartPosition;
+public Transform player2StartPosition;
+
+private Vector3 player1Start;
+private Vector3 player2Start;
+
     public static event System.Action<int> OnRoundStart;
     public static event System.Action<int, bool> OnRoundEnd;
     public static event System.Action<int> OnMatchEnd;
@@ -34,9 +41,12 @@ public class GameManager : MonoBehaviour
     }
 
     private void Start()
-    {
-        StartCoroutine(StartRound());
-    }
+{
+    if (player1Health != null) player1Start = player1Health.transform.position;
+    if (player2Health != null) player2Start = player2Health.transform.position;
+
+    StartCoroutine(StartRound());
+}
 
     private void Update()
     {
@@ -50,18 +60,22 @@ public class GameManager : MonoBehaviour
     }
 
     private System.Collections.IEnumerator StartRound()
-    {
-        roundActive = false;
-        currentRoundTime = roundTime;
+{
+    roundActive = false;
+    currentRoundTime = roundTime;
 
-        player1Health?.ResetHealth();
-        player2Health?.ResetHealth();
+    // Reset positions
+    if (player1Health != null) player1Health.transform.position = player1Start;
+    if (player2Health != null) player2Health.transform.position = player2Start;
 
-        OnRoundStart?.Invoke(currentRound);
+    player1Health?.ResetHealth();
+    player2Health?.ResetHealth();
 
-        yield return new WaitForSeconds(roundStartDelay);
-        roundActive = true;
-    }
+    OnRoundStart?.Invoke(currentRound);
+
+    yield return new WaitForSeconds(roundStartDelay);
+    roundActive = true;
+}
 
     public void OnPlayerDied(int playerIndex)
     {
